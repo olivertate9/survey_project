@@ -1,0 +1,15 @@
+CREATE TABLE IF NOT EXISTS Question (
+    id INT PRIMARY KEY NOT NULL AUTO_INCREMENT,
+    name VARCHAR(255) NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS Answer (
+    questionId INT,
+    answer_text VARCHAR(255) NOT NULL ,
+    FOREIGN KEY (questionId) REFERENCES Question(id)
+);
+
+CREATE TABLE IF NOT EXISTS MyAnswers (
+    id INT PRIMARY KEY NOT NULL,
+    answer VARCHAR(255) NOT NULL
+)
