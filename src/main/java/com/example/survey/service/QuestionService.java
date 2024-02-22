@@ -1,16 +1,17 @@
 package com.example.survey.service;
 
-import com.example.survey.repository.AnswerRepository;
-import com.example.survey.repository.QuestionRepository;
 import com.example.survey.dto.QuestionDto;
 import com.example.survey.entity.Question;
 import com.example.survey.exceptions.QuestionsNotFoundException;
+import com.example.survey.repository.AnswerRepository;
+import com.example.survey.repository.QuestionRepository;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
-import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
+import javax.annotation.PostConstruct;
+import java.util.List;
+import java.util.Random;
 
 @Service
 @RequiredArgsConstructor
@@ -19,29 +20,36 @@ public class QuestionService {
     private final QuestionRepository questionRepository;
     private final AnswerRepository answerRepository;
 
+    @Getter
+    private List<Question> allQuestions;
+    @Getter
+    private QuestionDto lastSeenQuestion;
+
+    @PostConstruct
+    public void initializeQuestions() {
+        allQuestions = questionRepository.findAll();
+    }
+
     public QuestionDto retrieveRandomQuestion() {
 
-        List<Question> all = getQuestions();
-
-        if (all.isEmpty()) {
+        if (allQuestions.isEmpty()) {
             throw new QuestionsNotFoundException("No questions left");
         }
 
-        int randomIndex = getRandomIndex(all);
+        int randomIndex = getRandomIndex(allQuestions);
 
-        Long id = all.get(randomIndex).getId();
-        String name = all.get(randomIndex).getName();
+        Long id = allQuestions.get(randomIndex).getId();
+        String name = allQuestions.get(randomIndex).getName();
         List<String> answers = answerRepository.findAllByQuestionId(id);
 
-        answerRepository.deleteByQuestionId(id);
-        questionRepository.deleteById(id);
+        lastSeenQuestion = getQuestionDto(id, name, answers);
 
-        return getQuestionDto(all, randomIndex, name, answers);
+        return lastSeenQuestion;
     }
 
-    private static QuestionDto getQuestionDto(List<Question> all, int randomIndex, String name, List<String> answers) {
+    private static QuestionDto getQuestionDto(Long id, String name, List<String> answers) {
         QuestionDto questionDto = new QuestionDto();
-        questionDto.setId(all.get(randomIndex).getId());
+        questionDto.setId(id);
         questionDto.setName(name);
         questionDto.setAnswers(answers);
         return questionDto;
@@ -52,10 +60,8 @@ public class QuestionService {
         return random.nextInt(all.size());
     }
 
-    private List<Question> getQuestions() {
-        Iterable<Question> allIterable = questionRepository.findAll();
-        return StreamSupport.stream(allIterable.spliterator(), false).collect(Collectors.toList());
+    public void removeFromAllQuestions(Long id) {
+        allQuestions.removeIf(question -> question.getId().equals(id));
     }
-
 
 }

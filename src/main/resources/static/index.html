@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Question and Answer App</title>
+</head>
+<body>
+
+<h1>Question and Answer App</h1>
+
+<!-- Send Answer Form -->
+<form id="sendAnswerForm">
+    <label for="answer">Your Answer:</label>
+    <input type="text" id="answer" name="answer" required>
+    <button type="submit">Send Answer</button>
+    <span id="sendAnswerMessage"></span> <!-- New element for submission message -->
+</form>
+
+<hr>
+
+<!-- Retrieve Random Question -->
+<button id="getRandomQuestion">Get Random Question</button>
+<div id="questionContainer"></div>
+<div id="answerContainer"></div> <!-- New container for answers -->
+<span id="noQuestionsMessage"></span> <!-- New element for no questions left message -->
+
+<hr>
+
+<!-- Change Answer Form -->
+<form id="changeAnswerForm">
+    <label for="changeAnswerId">Question ID:</label>
+    <input type="text" id="changeAnswerId" name="changeAnswerId" required>
+    <label for="newAnswer">New Answer:</label>
+    <input type="text" id="newAnswer" name="newAnswer" required>
+    <button type="submit">Change Answer</button>
+    <span id="changeAnswerMessage"></span> <!-- New element for submission message -->
+</form>
+
+<hr>
+
+<!-- View Statistics Button -->
+<button id="viewStats">View Statistics</button>
+<div id="statsContainer"></div> <!-- New container for statistics -->
+<span id="emptyStatsMessage"></span> <!-- New element for empty stats message -->
+
+<script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+<script>
+    $(document).ready(function() {
+        // Send Answer Form Submission
+        $("#sendAnswerForm").submit(function(event) {
+            event.preventDefault();
+
+            var answer = $("#answer").val();
+
+            // Send the answer to the server
+            $.ajax({
+                type: "POST",
+                url: "/questions/send",
+                data: { answer: answer },
+                success: function(response) {
+                    console.log("Answer sent successfully:", response);
+                    // Show submission message
+                    $("#sendAnswerMessage").text("Answer submitted successfully!");
+                    // Clear message after 3 seconds
+                    setTimeout(function() {
+                        $("#sendAnswerMessage").text("");
+                    }, 3000);
+                },
+                error: function(error) {
+                    console.error("Error sending answer:", error);
+                    // Show submission message with error
+                    $("#sendAnswerMessage").text("Error submitting answer. Please try again.");
+                    // Clear message after 3 seconds
+                    setTimeout(function() {
+                        $("#sendAnswerMessage").text("");
+                    }, 3000);
+                }
+            });
+        });
+
+        // Change Answer Form Submission
+        $("#changeAnswerForm").submit(function(event) {
+            event.preventDefault();
+
+            var questionId = $("#changeAnswerId").val();
+            var newAnswer = $("#newAnswer").val();
+
+            // Change the answer for the specified question
+            $.ajax({
+                type: "PATCH",
+                url: "/questions/change",
+                data: { id: questionId, answer: newAnswer },
+                success: function(response) {
+                    console.log("Answer changed successfully:", response);
+                    // Show submission message
+                    $("#changeAnswerMessage").text("Answer changed successfully!");
+                    // Clear message after 3 seconds
+                    setTimeout(function() {
+                        $("#changeAnswerMessage").text("");
+                    }, 3000);
+                },
+                error: function(error) {
+                    console.error("Error changing answer:", error);
+                    // Show submission message with error
+                    $("#changeAnswerMessage").text("Error changing answer. Please try again.");
+                    // Clear message after 3 seconds
+                    setTimeout(function() {
+                        $("#changeAnswerMessage").text("");
+                    }, 3000);
+                }
+            });
+        });
+
+        // Retrieve Random Question
+        // Retrieve Random Question
+        $("#getRandomQuestion").click(function() {
+            // Retrieve a random question and its answers from the server
+            $.ajax({
+                type: "GET",
+                url: "/questions/random",
+                success: function(response) {
+                    console.log("Random Question:", response);
+
+                    if (response.name) {
+                        // Display the question
+                        $("#questionContainer").html("<h3>Random Question:</h3><p>" + response.name + "</p>");
+
+                        // Display the answers
+                        $("#answerContainer").html("<h3>Answers:</h3><ul>" +
+                            response.answers.map(function(answer) {
+                                return "<li>" + answer + "</li>";
+                            }).join("") + "</ul>");
+
+                        // Clear no questions left message
+                        $("#noQuestionsMessage").text("");
+                    } else {
+                        // Display a message when there are no questions left
+                        $("#questionContainer").html("");
+                        $("#answerContainer").html("");
+                        $("#noQuestionsMessage").text("No questions left");
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error("Error retrieving random question:", error);
+
+                    // Check if the error status is 404 (Not Found)
+                    if (xhr.status === 404) {
+                        // Display a message when there are no questions left
+                        $("#questionContainer").html("");
+                        $("#answerContainer").html("");
+                        $("#noQuestionsMessage").text("No questions left");
+                    } else {
+                        // Display a general error message
+                        $("#questionContainer").html("");
+                        $("#answerContainer").html("");
+                        $("#noQuestionsMessage").text("An error occurred. Please try again.");
+                    }
+                }
+            });
+        });
+
+        // View Statistics Button Click
+        $("#viewStats").click(function() {
+            // Retrieve statistics from the server
+            $.ajax({
+                type: "GET",
+                url: "/questions/stats",
+                success: function(response) {
+                    console.log("Statistics:", response);
+
+                    if (response.length > 0) {
+                        // Display the statistics as a table
+                        $("#statsContainer").html("<h3>Statistics:</h3><table border='1'>" +
+                            "<tr><th>ID</th><th>Answer</th></tr>" +
+                            response.map(function(stat) {
+                                return "<tr><td>" + stat.id + "</td><td>" + stat.answer + "</td></tr>";
+                            }).join("") + "</table>");
+
+                        // Clear empty stats message
+                        $("#emptyStatsMessage").text("");
+                    } else {
+                        // Display a message when there are no stats
+                        $("#statsContainer").html("");
+                        $("#emptyStatsMessage").text("Please answer the questions first");
+                    }
+                },
+                error: function(error) {
+                    console.error("Error retrieving statistics:", error);
+                }
+            });
+        });
+    });
+</script>
+</body>
+</html>

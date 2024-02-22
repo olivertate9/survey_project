@@ -8,16 +8,16 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/v1/answers")
+@RequestMapping("/questions/")
 @RequiredArgsConstructor
 public class MyAnswersController {
 
     private final MyAnswersService myAnswersService;
 
-    @PostMapping("")
-    public ResponseEntity<MyAnswerDto> sendAnswer(@RequestBody MyAnswerDto answer) {
-        myAnswersService.sendAnswer(answer.getId(), answer.getAnswer());
-        return ResponseEntity.ok().body(answer);
+    @PostMapping("/send")
+    public ResponseEntity<MyAnswerDto> sendAnswer(@RequestParam String answer) {
+        MyAnswerDto myAnswerDto = myAnswersService.sendAnswer(answer);
+        return ResponseEntity.ok().body(myAnswerDto);
     }
 
     @GetMapping("/stats")
@@ -27,8 +27,8 @@ public class MyAnswersController {
     }
 
     @PatchMapping("/change")
-    public ResponseEntity<MyAnswerDto> changeAnswer(@RequestBody MyAnswerDto answer) {
-        myAnswersService.changeAnswer(answer.getId(), answer.getAnswer());
-        return ResponseEntity.ok().body(answer);
+    public ResponseEntity<MyAnswerDto> changeAnswer(@RequestParam Long id, @RequestParam String answer) {
+        MyAnswerDto myAnswerDto = myAnswersService.changeAnswer(id, answer);
+        return ResponseEntity.ok().body(myAnswerDto);
     }
 }
