@@ -14,7 +14,7 @@ import java.util.HashMap;
 public class ExceptionController {
 
     @ExceptionHandler(QuestionsNotFoundException.class)
-    public ResponseEntity<?> questionsNotFoundException(Exception e){
+    public ResponseEntity<HashMap<String, String>> questionsNotFoundException(Exception e){
         HashMap<String,String> response = new HashMap<>();
         response.put("Error", e.getMessage());
         response.put("ErrorCode", HttpStatus.NOT_FOUND.toString());

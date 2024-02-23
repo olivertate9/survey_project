@@ -21,7 +21,7 @@ public class MyAnswersController {
     }
 
     @GetMapping("/stats")
-    public ResponseEntity<?> getStatistics() {
+    public ResponseEntity<Iterable<MyAnswers>> getStatistics() {
         Iterable<MyAnswers> all = myAnswersService.findAll();
         return ResponseEntity.ok().body(all);
     }
